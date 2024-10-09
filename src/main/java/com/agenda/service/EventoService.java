@@ -6,10 +6,12 @@ import com.agenda.repository.EventoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class EventoService {
@@ -60,6 +62,24 @@ public class EventoService {
 
     public List<Evento> listarEventos() {
         return eventoRepository.findAll();
+    }
+
+    public List<Evento> listarEventos(Integer dias) {
+        List<Evento> todosEventos = eventoRepository.findAll();
+
+        if (dias != null) {
+            LocalDate dataLimite = LocalDate.now().plusDays(dias);
+            System.out.println("Data Limite: " + dataLimite);
+            return todosEventos.stream()
+                    .filter(evento -> {
+                        LocalDate dataEvento = evento.getDataInicio().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                        System.out.println("Evento: " + evento.getNomeEvento() + " - Data: " + dataEvento);
+                        return dataEvento.isBefore(dataLimite) || dataEvento.isEqual(dataLimite);
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        return todosEventos;
     }
 
     public void apagarEvento(UUID id) {

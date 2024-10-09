@@ -46,4 +46,13 @@ public class EventoController {
         eventoService.cancelarEvento(id);
         return ResponseEntity.ok("Evento cancelado com sucesso.");
     }
+
+    @GetMapping("/filtrar")
+    public ResponseEntity<?> listarEventosPorDias(@RequestParam(required = false) Integer dias) {
+        List<Evento> eventos = eventoService.listarEventos(dias);
+        if (eventos.isEmpty()) {
+            return ResponseEntity.ok("Nenhum evento encontrado.");
+        }
+        return ResponseEntity.ok(eventos);
+    }
 }
