@@ -30,4 +30,11 @@ public class EventoRepository {
     public void delete(UUID id) {
         eventos.removeIf(evento -> evento.getId().equals(id));
     }
+
+    public boolean existsById(UUID id) {
+        return false;
+    }
+
+    public void deleteById(UUID id) {
+    }
 }

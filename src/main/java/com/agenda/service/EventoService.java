@@ -21,7 +21,6 @@ public class EventoService {
 
     public List<String> validarEvento(EventoDto eventoDto) {
         List<String> erros = new ArrayList<>();
-
         if (eventoDto.getDataInicio() == null) {
             erros.add("dataInicio é obrigatório.");
         }
@@ -66,15 +65,24 @@ public class EventoService {
 
     public List<Evento> listarEventos(Integer dias) {
         List<Evento> todosEventos = eventoRepository.findAll();
+        LocalDate hoje = LocalDate.now();
+        LocalDate dataLimiteInferior;
+        LocalDate dataLimiteSuperior;
 
         if (dias != null) {
-            LocalDate dataLimite = LocalDate.now().plusDays(dias);
-            System.out.println("Data Limite: " + dataLimite);
+            if (dias < 0) {
+                dataLimiteInferior = hoje.plusDays(dias);
+                dataLimiteSuperior = hoje;
+            } else {
+                dataLimiteInferior = hoje;
+                dataLimiteSuperior = hoje.plusDays(dias);
+            }
+
             return todosEventos.stream()
                     .filter(evento -> {
                         LocalDate dataEvento = evento.getDataInicio().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                        System.out.println("Evento: " + evento.getNomeEvento() + " - Data: " + dataEvento);
-                        return dataEvento.isBefore(dataLimite) || dataEvento.isEqual(dataLimite);
+                        return (dataEvento.isBefore(dataLimiteSuperior) && dataEvento.isAfter(dataLimiteInferior)) ||
+                                dataEvento.isEqual(dataLimiteInferior);
                     })
                     .collect(Collectors.toList());
         }
