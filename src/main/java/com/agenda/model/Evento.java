@@ -1,6 +1,7 @@
 package com.agenda.model;
 
 import java.sql.Time;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -43,8 +44,8 @@ public class Evento {
         this.dataFim = dataFim;
     }
 
-    public Time getHoraInicio() {
-        return horaInicio;
+    public LocalTime getHoraInicio() {
+        return horaInicio.toLocalTime();
     }
 
     public void setHoraInicio(Time horaInicio) {

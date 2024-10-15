@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -66,25 +68,45 @@ public class EventoService {
     public List<Evento> listarEventos(Integer dias) {
         List<Evento> todosEventos = eventoRepository.findAll();
         LocalDate hoje = LocalDate.now();
-        LocalDate dataLimiteInferior;
-        LocalDate dataLimiteSuperior;
+        LocalTime agora = LocalTime.now(ZoneId.systemDefault());
+        System.out.println("Hora atual: " + agora);
 
         if (dias != null) {
             if (dias < 0) {
-                dataLimiteInferior = hoje.plusDays(dias);
-                dataLimiteSuperior = hoje;
-            } else {
-                dataLimiteInferior = hoje;
-                dataLimiteSuperior = hoje.plusDays(dias);
-            }
+                return todosEventos.stream()
+                        .filter(evento -> {
+                            LocalDate dataEvento = evento.getDataInicio().toInstant().atZone(ZoneId.of("UTC")).toLocalDate();
+                            LocalTime horaEvento = evento.getHoraInicio();
 
-            return todosEventos.stream()
-                    .filter(evento -> {
-                        LocalDate dataEvento = evento.getDataInicio().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                        return (dataEvento.isBefore(dataLimiteSuperior) && dataEvento.isAfter(dataLimiteInferior)) ||
-                                dataEvento.isEqual(dataLimiteInferior);
-                    })
-                    .collect(Collectors.toList());
+                            ZonedDateTime eventoZoned = ZonedDateTime.of(dataEvento, horaEvento, ZoneId.of("UTC"));
+
+                            ZonedDateTime eventoLocal = eventoZoned.withZoneSameInstant(ZoneId.systemDefault());
+
+                            System.out.println("Evento: " + eventoLocal);
+
+                            return dataEvento.isBefore(hoje) ||
+                                    (dataEvento.isEqual(hoje) && eventoLocal.toLocalTime().isBefore(agora));
+                        })
+                        .collect(Collectors.toList());
+            } else {
+                return todosEventos.stream()
+                        .filter(evento -> {
+                            LocalDate dataEvento = evento.getDataInicio().toInstant().atZone(ZoneId.of("UTC")).toLocalDate();
+                            LocalTime horaEvento = evento.getHoraInicio();
+
+
+                            ZonedDateTime eventoZoned = ZonedDateTime.of(dataEvento, horaEvento, ZoneId.of("UTC"));
+
+
+                            ZonedDateTime eventoLocal = eventoZoned.withZoneSameInstant(ZoneId.systemDefault());
+
+                            System.out.println("Evento: " + eventoLocal);
+
+                            return dataEvento.isAfter(hoje) ||
+                                    (dataEvento.isEqual(hoje) && eventoLocal.toLocalTime().isAfter(agora));
+                        })
+                        .collect(Collectors.toList());
+            }
         }
 
         return todosEventos;
